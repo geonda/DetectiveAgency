@@ -1,11 +1,11 @@
-# DetectiveAgency
+# DetectiveAgency LuAndHonesty
 Mock project for A/B testing
 
 Here is the deal..  There are two dectives in the agency and there is an advertising compain going on. Your mission, shell you choose accept it, is:
-- Check who is the best detective in the agency.
+- Check who is the best detective in the agency. (done)
 <!-- - Find out if the advertising launched on MAX is good idea or bad. -->
-- Does green, red or transperent is the best color for the button on the website.
-- Create a set of metrics for the agency that should reflect both perfomance, revenue and potential growth?
+- Does green or redis the best color for the button on the website. (done)
+- Create a set of metrics for the agency that should reflect both perfomance, revenue and potential growth? ()
 
 The people how are seekig the help in the agency have following metadata:
 

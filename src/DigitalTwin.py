@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from scipy import stats as st
+import numpy as np
+import pandas as pd
 
 class City:
     def __init__(
@@ -130,7 +132,7 @@ class Agency:
             print(err)
 
     def get_cases(self, people):
-        self.clients=people
+        self.clients = people
         self.cases = [self._assign_case(person) for person in people]
         self.generate_distributions()
 
@@ -194,125 +196,291 @@ class QuickStart:
         return self.agency
 
 
-
-
 class Statistics:
     def __init__(self, results) -> None:
         self.results = results
         self.names = list(results.keys())
-        self.conditions = [v['condition'] for k, v in results.items()]
-        self.effect = [v['effect'] for k, v in results.items()]
-        self.hist = [v['hist'] for k, v in results.items()]
+        self.conditions = [v["condition"] for k, v in results.items()]
+        self.effect = [v["effect"] for k, v in results.items()]
+        self.hist = [v["hist"] for k, v in results.items()]
 
-    def show(self, ttest=True):
+    def show(self, ttest=True, label="H0: Detective 1 is better than Detective 2", fig=None, axs=None, qq=None):
         n = len(self.names)
         if not ttest:
             # plt.title('H0: Detective 1 is better then Detective 2')
-            fig, axs = plt.subplots(3, n, figsize=(3 * n, 5))# gridspec_kw={'height_ratios': [1, 1],'width_ratios': [1, 1] })
-            fig.suptitle('H0: Detective 1 is better than Detective 2')
+            if not fig and not axs:
+                fig, axs = plt.subplots(
+                    3, n, figsize=(3 * n, 5)
+                )  # gridspec_kw={'height_ratios': [1, 1],'width_ratios': [1, 1] })
             
-            # Plot histograms on the top row, one per box
-            for i, hist_data in enumerate(self.hist):
-                sns.histplot(hist_data, ax=axs[0, i], bins=10, color='grey')
-                axs[0,i].axvline(hist_data.quantile(0.025),color='grey',ls='--')
-                axs[0,i].axvline(hist_data.quantile(0.975),color='grey',ls='--')
-                axs[0,i].axvline(self.effect[i],color='red',ls='--')
-                axs[0, i].set_title(self.names[i])
-                # axs[0, i].set_xticks([])
-                axs[0, i].set_yticks([])
-            
-            for i, hist_data in enumerate(self.hist):
-                st.probplot(hist_data, dist='norm', plot=axs[2,i])
-            
-        # Bottom row: colored boxes
-            colors = ['green' if c else 'red' for c in self.conditions]
-            x = np.arange(n)
-            y = np.zeros(n)
-            for j in range(n):
-                sns.scatterplot(x=[x[j]], y=[y[j]], s=10000, color=colors[j], marker='s', edgecolor='none', ax=axs[1, j])
-                sns.despine(ax=axs[1, j], left=True, bottom=True, right=True, top=True)
-                axs[1, j].set_xlim(-0.1, n - 0.1)
-                axs[1, j].set_ylim(-0.1, 0.1)
-                axs[1, j].set_yticks([])
-                axs[1, j].set_xticks([])
-            
+            fig.suptitle(label)
+            if n==1:
+                # Plot histograms on the top row, one per box
+                for i, hist_data in enumerate(self.hist):
+                    sns.histplot(hist_data, ax=axs[ i], bins=10, color="grey")
+                    axs[0].axvline(hist_data.quantile(0.025), color="grey", ls="--")
+                    axs[ 0].axvline(hist_data.quantile(0.975), color="grey", ls="--")
+                    axs[ 0].axvline(self.effect[i], color="red", ls="--")
+                    axs[0].set_title(self.names[i])
+                    # axs[0, i].set_xticks([])
+                    axs[0].set_yticks([])
+                if qq:
+                    for i, hist_data in enumerate(self.hist):
+                        st.probplot(hist_data, dist="norm", plot=axs[2])
 
-            # Hide all other axes on bottom row except the first and set limits
-            for i in range(1, n):
-                axs[1, i].axis('off')
+                # Bottom row: colored boxes
+                colors = ["green" if c else "red" for c in self.conditions]
+                x = np.arange(n)
+                y = np.zeros(n)
+                for j in range(n):
+                    sns.scatterplot(
+                        x=[x[j]],
+                        y=[y[j]],
+                        s=10000,
+                        color=colors[j],
+                        marker="s",
+                        edgecolor="none",
+                        ax=axs[ 1],
+                    )
+                    sns.despine(ax=axs[ 1], left=True, bottom=True, right=True, top=True)
+                    axs[ 1].set_xlim(-0.1,  0.1)
+                    axs[ 1].set_ylim(-0.1, 0.1)
+                    axs[ 1].set_yticks([])
+                    axs[ 1].set_xticks([])
+
+                # Hide all other axes on bottom row except the first and set limits
+                for i in range(1, n):
+                    axs[ 1].axis("off")
+            else:
+                                # Plot histograms on the top row, one per box
+                for i, hist_data in enumerate(self.hist):
+                    sns.histplot(hist_data, ax=axs[0, i], bins=10, color="grey")
+                    axs[0, i].axvline(hist_data.quantile(0.025), color="grey", ls="--")
+                    axs[0, i].axvline(hist_data.quantile(0.975), color="grey", ls="--")
+                    axs[0, i].axvline(self.effect[i], color="red", ls="--")
+                    axs[0, i].set_title(self.names[i])
+                    # axs[0, i].set_xticks([])
+                    axs[0, i].set_yticks([])
+
+                for i, hist_data in enumerate(self.hist):
+                    st.probplot(hist_data, dist="norm", plot=axs[2, i])
+
+                # Bottom row: colored boxes
+                colors = ["green" if c else "red" for c in self.conditions]
+                x = np.arange(n)
+                y = np.zeros(n)
+                for j in range(n):
+                    sns.scatterplot(
+                        x=[x[j]],
+                        y=[y[j]],
+                        s=10000,
+                        color=colors[j],
+                        marker="s",
+                        edgecolor="none",
+                        ax=axs[1, j],
+                    )
+                    sns.despine(ax=axs[1, j], left=True, bottom=True, right=True, top=True)
+                    axs[1, j].set_xlim(-0.1, n - 0.1)
+                    axs[1, j].set_ylim(-0.1, 0.1)
+                    axs[1, j].set_yticks([])
+                    axs[1, j].set_xticks([])
+
+                # Hide all other axes on bottom row except the first and set limits
+                for i in range(1, n):
+                    axs[1, i].axis("off")
+
         else:
-            fig, axs = plt.subplots(1, n, figsize=(1 * n, 2))# gridspec_kw={'height_ratios': [1, 1],'width_ratios': [1, 1] })
-            fig.suptitle('H0: Detective 1 is better than Detective 2')
+            fig, axs = plt.subplots(
+                1, n, figsize=(1 * n, 2)
+            )  # gridspec_kw={'height_ratios': [1, 1],'width_ratios': [1, 1] })
+            fig.suptitle("H0: Detective 1 is better than Detective 2")
 
             # Bottom row: colored boxes
-            colors = ['green' if c else 'red' for c in self.conditions]
+            colors = ["green" if c else "red" for c in self.conditions]
             x = np.arange(n)
             y = np.zeros(n)
             for j in range(n):
-                sns.scatterplot(x=[x[j]], y=[y[j]], s=10000, color=colors[j], marker='s', edgecolor='none', ax=axs[ j])
+                sns.scatterplot(
+                    x=[x[j]],
+                    y=[y[j]],
+                    s=10000,
+                    color=colors[j],
+                    marker="s",
+                    edgecolor="none",
+                    ax=axs[j],
+                )
                 sns.despine(ax=axs[j], left=True, bottom=True, right=True, top=True)
-                axs[ j].set_xlim(-0.1, n - 0.1)
-                axs[ j].set_ylim(-0.1, 0.1)
-                axs[ j].set_yticks([])
-                axs[ j].set_xticks([])
-            
+                axs[j].set_xlim(-0.1, n - 0.1)
+                axs[j].set_ylim(-0.1, 0.1)
+                axs[j].set_yticks([])
+                axs[j].set_xticks([])
 
             # Hide all other axes on bottom row except the first and set limits
             for i in range(1, n):
-                axs[ i].axis('off')
+                axs[i].axis("off")
 
+        # plt.tight_layout()
+        # plt.show()
 
-
-        plt.tight_layout()
-        plt.show()
-
-        
 
 class Metrics:
-    def __init__(self,df) -> None:
-        self.df=df
+    def __init__(self, df) -> None:
+        self.df = df
         pass
-        
-    def single_metrics_bootstrap(self, name='revenue', agg='mean', two_sided=True):
-        rm = self.df[self.df['detective_id']==0]
-        sh = self.df[self.df['detective_id']==1]
-        rm_means=pd.Series([rm.sample(frac=1, replace=True)[name].agg(agg) for _ in range(100)])
-        sh_means=pd.Series([sh.sample(frac=1, replace=True)[name].agg(agg) for _ in range(100)])
-        
-        effect=sh_means.mean()-rm_means.mean()
+
+    def single_metrics_bootstrap(self, name="revenue", agg="mean", two_sided=True):
+        rm = self.df[self.df["detective_id"] == 0]
+        sh = self.df[self.df["detective_id"] == 1]
+        rm_means = pd.Series(
+            [rm.sample(frac=1, replace=True)[name].agg(agg) for _ in range(100)]
+        )
+        sh_means = pd.Series(
+            [sh.sample(frac=1, replace=True)[name].agg(agg) for _ in range(100)]
+        )
+
+        effect = sh_means.mean() - rm_means.mean()
         # print(effect)
-        diffs= sh_means-rm_means-effect
+        diffs = sh_means - rm_means - effect
         if two_sided:
             p_value = np.mean(np.abs(diffs) >= np.abs(effect))
-            condition=True if p_value < 0.05 else False
+            condition = True if p_value < 0.05 else False
             return condition, effect, diffs
         else:
             p_value = np.mean(diffs >= effect)
-            condition=True if p_value > 0.95 else False
-            return condition,effect, diffs
-    def single_metrics_ttest(self, name='revenue', agg='mean', two_sided=True):
-        rm = self.df[self.df['detective_id']==0]
-        sh = self.df[self.df['detective_id']==1]
-        effect, p_value = st.ttest_ind(sh[name], rm[name])
-        condition=True if p_value < 0.05 else False
-        return  condition,effect
+            condition = True if p_value > 0.95 else False
+            return condition, effect, diffs
     
+    def bootstrap(self, s1, s2,  two_sided=True):
+        def ctr(x):
+            return x.sum()/x.count()
+        rm_means = pd.Series(
+            [s1.sample(frac=1, replace=True).agg(ctr) for _ in range(100)]
+        )
+        sh_means = pd.Series(
+            [s2.sample(frac=1, replace=True).agg(ctr) for _ in range(100)]
+        )
+
+        effect = sh_means.mean() - rm_means.mean()
+        # print(effect)
+        diffs = sh_means - rm_means - effect
+        if two_sided:
+            p_value = np.mean(np.abs(diffs) >= np.abs(effect))
+            condition = True if p_value < 0.05 else False
+            return condition, effect, diffs
+        else:
+            p_value = np.mean(diffs >= effect)
+            condition = True if p_value > 0.95 else False
+            return condition, effect, diffs
+
+    def single_metrics_ttest(self, name="revenue", agg="mean", two_sided=True):
+        rm = self.df[self.df["detective_id"] == 0]
+        sh = self.df[self.df["detective_id"] == 1]
+        effect, p_value = st.ttest_ind(sh[name], rm[name])
+        condition = True if p_value < 0.05 else False
+        return condition, effect
+
     def get_bootstrap(self, names=[]):
-        self.names=names
+        self.names = names
         # print(names)
-        self.results=dict()
+        self.results = dict()
         for name, agg in names:
             # print(name)
-            condition, effect,hist=self.single_metrics_bootstrap(name=name, agg=agg)
-            self.results[name]={'condition':condition,"effect":effect, 'hist':hist} 
+            condition, effect, hist = self.single_metrics_bootstrap(name=name, agg=agg)
+            self.results[name] = {
+                "condition": condition,
+                "effect": effect,
+                "hist": hist,
+            }
         return Statistics(self.results)
 
     def get_ttest(self, names=[]):
-        self.names=names
+        self.names = names
         # print(names)
-        self.results=dict()
+        self.results = dict()
         for name, agg in names:
             # print(name)
-            condition, effect=self.single_metrics_ttest(name=name, agg=agg)
-            self.results[name]={'condition':condition,"effect":effect, 'hist':None} 
+            condition, effect = self.single_metrics_ttest(name=name, agg=agg)
+            self.results[name] = {
+                "condition": condition,
+                "effect": effect,
+                "hist": None,
+            }
         return Statistics(self.results)
+
+
+class Button:
+    def __init__(self, color) -> None:
+        self.color = color
+
+
+class Website:
+    def __init__(self, potential_clients) -> None:
+        self.potential_clients = potential_clients
+        self.clients_out = {}
+
+    def _button_exposure(self, person, button):
+        if person.age < 30 and button.color == "green":
+            return True if np.random.random() < 0.9 else False
+        elif person.age > 30 and button.color == "red":
+            return True if np.random.random() < 0.9 else False
+        elif person.sex == "male" and button.color == "tr":
+            return True if np.random.random() < 0.9 else False
+        else:
+            return True if np.random.random() < 0.2 else False
+
+    def process_clients(self, group, button):
+        results = []
+        for client in group:
+            condition = self._button_exposure(client, button)
+            results.append(
+                {"conidition": condition, "button": button, "client": client}
+            )
+        return results
+
+    def split(self, m):
+        shuffled = self.potential_clients[:]
+        np.random.shuffle(shuffled)
+
+        n = len(shuffled)
+        group_size = n // m
+        remainder = n % m
+
+        groups = []
+        start = 0
+        for i in range(m):
+            # Distribute remainder items one by one to groups
+            end = start + group_size + (1 if i < remainder else 0)
+            groups.append(shuffled[start:end])
+            start = end
+
+        return groups
+
+    def experiment(self, m=6):
+        groups = self.split(m)
+        buttons = [
+            Button("green"),
+            Button("green"),
+            Button("green"),
+            Button("red"),
+            Button("red"),
+            Button("red"),
+        ]
+        group_results = {}
+        for name, group, button in zip(["a", "b", "c", "d", "e", "f"], groups, buttons):
+            group_results[name] = self.process_clients(group, button)
+        
+        group_results=self._formatting(group_results)
+        return group_results
+
+    def _formatting(self, group_results):
+        groups={}
+        for k,v in group_results.items():
+
+            df=pd.DataFrame({'client_id': [item['client'].id for item in v], 
+                            'client_age': [item['client'].age for item in v],
+                            'client_sex': [item['client'].sex for item in v],
+                            'client_problem': [item['client'].problem_type for item in v],
+                            'result': [item['conidition'] for item in v],
+                            'button':[item['button'].color for item in v], })
+            groups[k]=df
+        return groups
